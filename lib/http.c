@@ -4152,9 +4152,16 @@ static CURLcode http_rw_hd(struct Curl_easy *data,
 
   *pconsumed = 0;
   if((0x0a == *hd) || (0x0d == *hd)) {
-    /* Empty header line means end of headers! */
+    /* Only an empty line may end the headers. Do not pass any other bytes
+       on this line to the header callback without header validation. */
     struct dynbuf last_header;
     size_t consumed;
+
+    if(((0x0a == *hd) && (hdlen != 1)) ||
+       ((0x0d == *hd) && ((hdlen != 2) || (0x0a != hd[1])))) {
+      failf(data, "Invalid end of headers");
+      return CURLE_WEIRD_SERVER_REPLY;
+    }
 
     curlx_dyn_init(&last_header, hdlen + 1);
     result = curlx_dyn_addn(&last_header, hd, hdlen);
