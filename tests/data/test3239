@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<testcase>
+<info>
+<keywords>
+HTTP
+HTTP GET
+header validation
+</keywords>
+</info>
+
+<reply>
+# The CR-prefixed line is neither CRLF nor LF. The NUL must not reach a
+# header callback or the -D output through the terminator path.
+<data nocheck="yes">
+HTTP/1.1 200 OK%CR
+Content-Length: 0%CR
+%CRX-Bad: a%hex[%00]hex%b%CR
+</data>
+</reply>
+
+<client>
+<server>
+http
+</server>
+<name>
+Reject a CR-prefixed HTTP header terminator containing NUL
+</name>
+<command option="no-output,no-include">
+-D %LOGDIR/heads%TESTNUMBER -o /dev/null http://%HOSTIP:%HTTPPORT/%TESTNUMBER
+</command>
+</client>
+
+<verify>
+<protocol crlf="headers">
+GET /%TESTNUMBER HTTP/1.1
+Host: %HOSTIP:%HTTPPORT
+User-Agent: curl/%VERSION
+Accept: */*
+
+</protocol>
+<errorcode>
+8
+</errorcode>
+<file name="%LOGDIR/heads%TESTNUMBER" crlf="yes">
+HTTP/1.1 200 OK
+Content-Length: 0
+</file>
+</verify>
+</testcase>

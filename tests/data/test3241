@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<testcase>
+<info>
+<keywords>
+RTSP
+header validation
+</keywords>
+</info>
+
+<reply>
+<data nocheck="yes">
+RTSP/1.0 200 OK%CR
+CSeq: 1%CR
+%CRX-Bad: a%hex[%00]hex%b%CR
+</data>
+</reply>
+
+<client>
+<server>
+rtsp
+</server>
+<name>
+Reject a CR-prefixed RTSP header terminator containing NUL
+</name>
+<command option="no-output,no-include">
+-D %LOGDIR/heads%TESTNUMBER -o /dev/null rtsp://%HOSTIP:%RTSPPORT/%TESTNUMBER
+</command>
+</client>
+
+<verify>
+<protocol crlf="headers">
+OPTIONS * RTSP/1.0
+CSeq: 1
+User-Agent: curl/%VERSION
+
+</protocol>
+<errorcode>
+8
+</errorcode>
+<file name="%LOGDIR/heads%TESTNUMBER" crlf="yes">
+RTSP/1.0 200 OK
+CSeq: 1
+</file>
+</verify>
+</testcase>
